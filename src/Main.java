@@ -1,5 +1,4 @@
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -91,6 +90,7 @@ public class Main extends Application {
         ImageView[] views=new ImageView[9];
         for (int i=0;i<9;i++){
             views[i]=new ImageView(ima.get(i));
+            views[i].setRotate((int)(Math.random() * 4) * 90);
         }
         Menu impo = new Menu("Importer");
         Menu action = new Menu("Action");
@@ -139,6 +139,7 @@ public class Main extends Application {
             Collections.shuffle(ima);
             for (int i=0;i<views.length;i++){
                 views[i].setImage(ima.get(i));
+                views[i].setRotate((int)(Math.random() * 4) * 90);
             }
         });
         sc1.setOnKeyPressed(event->{
@@ -164,33 +165,32 @@ public class Main extends Application {
                 dragboard.setContent(contenu);
             } );
             views[i].setOnDragDone(event -> {
-                boolean done=true;
-                for (int j=0; j<9; j++){
-                    if(!views[j].getImage().equals(tab2D[liveTablo[0]][j])){
-                        done=false;
-                    }
-                }
-                if (done){
-                    Label win = new Label("BRAVO!!!");
-                    Label replay = new Label("Vous avez résolu le casse-tête. Voulez-vous rejouer?");
-                    VBox vBox = new VBox(win, replay);
-                    Dialog dialog = new Dialog();
-                    dialog.getDialogPane().setContent(vBox);
-                    dialog.setTitle("Félicitation");
-                    dialog.getDialogPane().getButtonTypes().add(new ButtonType("Rejouer"));
-                    dialog.showAndWait();
+                if (chekUp(views,tab2D,liveTablo)){
                     mix.fire();
                     tabPts[0]++;
                     txt.setText("Nb de pts : "+tabPts[0]);
                 }
+
             });
             views[i].setOnDragOver(event -> {
                 event.acceptTransferModes(TransferMode.MOVE);
             });
             views[i].setOnDragDropped(event -> {
                 Image temp=((ImageView)event.getGestureSource()).getImage();
+                double tempo=((ImageView)event.getGestureSource()).getRotate();
                 ((ImageView)event.getGestureSource()).setImage(views[number].getImage());
                 views[number].setImage(temp);
+                ((ImageView)event.getGestureSource()).setRotate(views[number].getRotate());
+                views[number].setRotate(tempo);
+
+            });
+            views[i].setOnMouseClicked(event1 -> {
+                views[number].setRotate(views[number].getRotate()+90);
+                if (chekUp(views,tab2D,liveTablo)){
+                    mix.fire();
+                    tabPts[0]++;
+                    txt.setText("Nb de pts : "+tabPts[0]);
+                }
             });
         }
     }
@@ -204,6 +204,25 @@ public class Main extends Application {
             views[i].setImage(ima.get(i));
         }
 
+    }
+    public boolean chekUp(ImageView[] views, Image[][] tab2D, int[]liveTablo){
+        boolean done=true;
+        for (int j=0; j<9; j++){
+            if(!views[j].getImage().equals(tab2D[liveTablo[0]][j]) || views[j].getRotate()%360!=0){
+                done=false;
+            }
+        }
+        if (done){
+            Label win = new Label("BRAVO!!!");
+            Label replay = new Label("Vous avez résolu le casse-tête. Voulez-vous rejouer?");
+            VBox vBox = new VBox(win, replay);
+            Dialog dialog = new Dialog();
+            dialog.getDialogPane().setContent(vBox);
+            dialog.setTitle("Félicitation");
+            dialog.getDialogPane().getButtonTypes().add(new ButtonType("Rejouer"));
+            dialog.showAndWait();
+        }
+        return done;
     }
 
 }
